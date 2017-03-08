@@ -64,6 +64,7 @@ def main():
     skewed = (np.absolute(skew(train_num)) > 1)
     train_num.iloc[:, skewed] = np.log1p(train_num.iloc[:, skewed])
     test_num.iloc[:, skewed] = np.log1p(test_num.iloc[:, skewed])
+    train_price = np.log1p(train_price)
 
     # normalize numerical features
     scaler = StandardScaler().fit(train_num)
@@ -109,6 +110,10 @@ def main():
     scores = cross_val_score(lasso, train, train_price,
                              cv=10, scoring='neg_mean_squared_error')
     print("Mean of 10 CV sqrt MSE: {}".format(np.sqrt(-scores.mean())))
+
+    # preds = ridge.fit(train, train_price).predict(train)
+    # preds_price = np.expm1(preds)
+    # print(np.abs(train_price - preds_price))
 
     return
 
