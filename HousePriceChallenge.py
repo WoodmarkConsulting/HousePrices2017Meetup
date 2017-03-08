@@ -7,15 +7,14 @@ from scipy.stats import skew
 from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
-# from sklearn.decomposition import PCA
 
 
 def main():
     plot = False
 
     # load input data
-    train = pd.read_csv("../input/train.csv")
-    test = pd.read_csv("../input/test.csv")
+    train = pd.read_csv("input/train.csv")
+    test = pd.read_csv("input/test.csv")
 
     print("Number of features in training set: {}".format(train.shape[1]))
     print("Number of training data entries: {}".format(train.shape[0]))
@@ -86,44 +85,31 @@ def main():
     train = train_test.iloc[:train.shape[0], :]
     test = train_test.iloc[train.shape[0]:, :]
 
-    # pca = PCA(n_components=5)
-    # pca.fit(train)
-    # print("PCA explained variance ratio: {}"
-    #       .format(pca.explained_variance_ratio_))
-
-    # X_train, X_test, y_train, y_true = train_test_split(train, train_price)
-
     print("Linear Regression")
     lin_reg = linear_model.LinearRegression()
     scores = cross_val_score(lin_reg, train, train_price,
-                             cv=10, scoring='neg_mean_squared_error')
-    print("Mean of 10 CV sqrt MSE: {}".format(np.sqrt(-scores.mean())))
+                             cv=5, scoring='neg_mean_squared_error')
+    print("Mean of 5 CV sqrt MSE: {}".format(np.sqrt(-scores.mean())))
 
     print("Ridge Regression")
     ridge = linear_model.Ridge(alpha=10.)
     scores = cross_val_score(ridge, train, train_price,
-                             cv=10, scoring='neg_mean_squared_error')
-    print("Mean of 10 CV sqrt MSE: {}".format(np.sqrt(-scores.mean())))
+                             cv=5, scoring='neg_mean_squared_error')
+    print("Mean of 5 CV sqrt MSE: {}".format(np.sqrt(-scores.mean())))
 
-    print("Lasso Regression")
-    lasso = linear_model.Lasso(alpha=100., max_iter=10000)
-    scores = cross_val_score(lasso, train, train_price,
-                             cv=10, scoring='neg_mean_squared_error')
-    print("Mean of 10 CV sqrt MSE: {}".format(np.sqrt(-scores.mean())))
+    ridge.fit(train, train_price)
 
-    # preds = ridge.fit(train, train_price).predict(train)
-    # preds_price = np.expm1(preds)
-    # print(np.abs(train_price - preds_price))
+    # predict test set
+    preds = ridge.predict(test)
+    preds_price = np.expm1(preds)
+    test_results = pd.DataFrame({'SalePrice': preds_price,
+                                 'Id': test.index})
+    test_results.set_index('Id', inplace=True)
+
+    # save as csv
+    test_results.to_csv("output/test_results.csv")
 
     return
-
-    # train_test.iloc[:, 1:100].boxplot(showfliers=False, rot=90)
-    # plt.show()
-    # np.sum(train_test["Street_Pave"] == 1) / train_test.shape[0]
-    # np.sum(train_test["Street_Pave"] == 0) / train_test.shape[0]
-    # plt.scatter(X_train.iloc[:, 1], y_train)
-    # plt.show()
-
 
 if __name__ == "__main__":
     main()
